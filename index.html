@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sports Performance Quiz</title>
+<style>
+:root{--bg:#f6f7f4;--card:#fff;--ink:#16201a;--mute:#5c6a62;--line:#dfe4de;--acc:#0f7a5c;--acc-ink:#fff;--ok:#1b9e4b;--bad:#d93025;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111815;--card:#1a2420;--ink:#eef3ef;--mute:#9aaaa1;--line:#2c3a33;--acc:#3ecf9a;--acc-ink:#06241a}}
+:root[data-theme="dark"]{--bg:#111815;--card:#1a2420;--ink:#eef3ef;--mute:#9aaaa1;--line:#2c3a33;--acc:#3ecf9a;--acc-ink:#06241a}
+*{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.7rem;margin:.2em 0 .1em;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:.9rem;cursor:pointer}
+.chip.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.btn{background:var(--acc);color:var(--acc-ink);border:0;border-radius:12px;padding:13px 20px;font:inherit;font-weight:650;cursor:pointer;width:100%}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
+label.n{font-weight:600;display:block;margin-bottom:6px}
+.bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin:6px 0 16px}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .3s}
+.meta{display:flex;justify-content:space-between;color:var(--mute);font-size:.85rem}
+.q{font-size:1.15rem;font-weight:600;margin:6px 0 16px}
+.opt{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;font:inherit;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--card))}
+.opt:disabled{cursor:default}
+.exp{margin:14px 0;padding:12px 14px;border-left:4px solid var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--card));border-radius:8px;font-size:.95rem}
+.big{font-size:3rem;font-weight:800;margin:.1em 0}
+ul.miss{padding-left:18px;color:var(--mute)}
+ul.miss b{color:var(--ink)}
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:50}
+.opt{transition:background .35s ease,border-color .35s ease}
+#flash.red{background:radial-gradient(ellipse at center,rgba(217,48,37,0) 38%,rgba(217,48,37,.8) 100%)}
+#flash.green{background:radial-gradient(ellipse at center,rgba(27,158,75,0) 38%,rgba(27,158,75,.75) 100%)}
+#flash.red.show{animation:pulse 1.5s cubic-bezier(.4,0,.2,1) forwards}
+#flash.green.show{animation:pulse 1s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes pulse{0%{opacity:0}35%{opacity:1}65%{opacity:1}100%{opacity:0}}
+.hide{display:none}
+.inp{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:11px;margin-bottom:14px}
+.chk{display:flex;gap:8px;align-items:center;margin-bottom:12px;cursor:pointer}
+.lb{margin-top:14px}.lb h2{font-size:1.1rem;margin:0 0 4px}.lb ol{padding-left:22px;margin:8px 0}.lb li{padding:3px 0}.lb li span{float:right;color:var(--mute)}
+.stars{display:flex;gap:4px;margin:6px 0 10px}.star{background:none;border:0;font-size:1.8rem;color:var(--acc);cursor:pointer;padding:0 2px}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<main>
+  <section id="home">
+    <h1>Sports Performance Quiz</h1>
+    <p class="sub">Pick your topics, answer, and get instant feedback. Wrong = red glow around the edges, right = green.</p>
+    <button class="chip hide" id="testBtn" style="margin-bottom:12px">🧪 Test: preview the free-skip claim (owner only)</button>
+    <div id="claim" class="card hide" style="border:2px solid var(--acc);margin-bottom:14px"><b>🎉 You won the free skip for any question!</b><p class="sub" style="margin:6px 0 12px">You’ve held #1 for over a day. Claim it, then use it on any question in a quiz.</p><button class="btn" id="claimBtn">Claim my free skip</button></div>
+    <div class="card">
+      <label class="n">Topics</label>
+      <div class="chips" id="chips"></div>
+      <label class="n" for="count">Number of questions (type any number)</label>
+      <input id="count" class="inp" type="number" min="1" inputmode="numeric" value="20">
+      <label class="chk"><input type="checkbox" id="compete"> Compete on the leaderboard (10+ questions; leave off to play anonymously)</label>
+      <input id="nick" class="inp hide" maxlength="20" placeholder="Your leaderboard name">
+      <div id="nickNote" class="sub" style="margin:-8px 0 10px;font-size:.85rem"></div>
+      <div id="nickErr" class="sub" style="color:var(--bad);margin:-8px 0 10px"></div>
+      <button class="btn" id="start">Start quiz</button>
+    </div>
+    <div class="card lb"><h2>🏆 Leaderboard</h2><div class="sub" style="margin:0">Top 10 · quizzes of 10+ questions · ranked by %</div><div id="skipNote" class="sub" style="margin:6px 0 0">Hold #1 for 24 hours to earn a free skip (max 1 per week).</div><div id="lbHome"></div></div>
+    <div class="card lb hide" id="fbAdmin"><h2>💬 Feedback</h2><div id="fbList"></div></div>
+  </section>
+
+  <section id="play" class="hide">
+    <div class="meta"><span id="pos"></span><span id="score"></span></div>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="card">
+      <div class="meta" id="topic"></div>
+      <div class="q" id="q"></div>
+      <div id="opts"></div>
+      <button class="btn alt hide" id="skip" style="margin:0 0 10px">⭐ Use free skip (counts as correct)</button>
+      <div id="exp" class="exp hide"></div>
+      <button class="btn hide" id="next">Next</button>
+    </div>
+  </section>
+
+  <section id="end" class="hide">
+    <div class="card">
+      <div class="meta">Quiz complete</div>
+      <div class="big" id="final"></div>
+      <p id="msg" class="sub"></p>
+      <div id="missWrap" class="hide"><b>Review these:</b><ul class="miss" id="miss"></ul></div>
+      <div id="fb" class="lb"><h2>💬 Feedback</h2>
+        <div id="stars" class="stars"></div>
+        <textarea id="fbText" class="inp" rows="3" maxlength="500" placeholder="What did you like, or what should be better?"></textarea>
+        <button class="btn alt" id="fbSend" style="margin:0 0 8px">Send feedback</button>
+        <label class="chk"><input type="checkbox" id="fbHide"> Don’t show this box again</label>
+        <div id="fbMsg" class="sub"></div></div>
+      <div id="saveMsg" class="sub"></div>
+      <div class="lb"><h2>🏆 Leaderboard</h2><div id="lbEnd"></div></div>
+      <button class="btn" id="again" style="margin-top:14px">Try again</button>
+      <button class="btn alt" id="redo">Redo only my mistakes</button>
+      <button class="btn alt" id="home2">Change topics</button>
+    </div>
+  </section>
+</main>
+
+<script>
+// [topic, question, correct answer, [wrong answers], explanation]
+const Q=[
+// Training Principles
+["Training principles","Ten days before a championship, a gymnast tapers. What is the most effective way?","Reduce volume and maintain intensity",["Reduce volume while increasing intensity","Increase volume while reducing intensity","Increase volume and maintain intensity"],"A taper cuts volume to allow recovery but keeps intensity so fitness is not lost."],
+["Training principles","Which is a sign of overtraining?","Persistent fatigue and reduced performance",["Decreased resting heart rate","Increased appetite","Reduced RPE during training"],"Overtraining shows as ongoing fatigue and worse performance (often with raised resting HR)."],
+["Training principles","A graph shows fitness rising quickly then levelling off. Which principle is this?","Diminishing returns",["Progression","Detraining","Overtraining"],"Early gains are rapid, then slow as fitness level increases."],
+["Training principles","A coach frequently adjusts a program to prevent boredom. Which principle is this?","Variety",["Specificity","Reversibility","Maintenance"],"Variety keeps training enjoyable and helps adherence."],
+["Training principles","How does the law of diminishing returns apply to training?","Initial rapid adaptations slow as fitness increases",["Athletes improve indefinitely with constant training","Changing routines has no effect on adaptations","Faster adaptations occur at higher fitness with less training"],"The fitter you are, the smaller the gains from the same effort."],
+["Training principles","Which principle is addressed by completing an activity analysis of a sport?","Specificity",["Variety","Reversibility","Progression"],"An activity analysis makes training specific to the movements, energy systems and fitness components of the sport."],
+["Training principles","A graph shows agility test improvement shrinking from 10% to almost 0% over seven weeks. Which principle?","Diminishing returns",["Progression","Reversibility","Individuality"],"Improvement gets smaller each week as the athlete approaches their limit."],
+["Training principles","After the competitive phase, a program has less volume but similar intensity. Which principle?","Maintenance",["Diminishing returns","Individuality","Variety"],"Maintenance keeps fitness at its current level, usually with reduced volume."],
+["Training principles","A cyclist can’t train for eight weeks because of a knee injury. Which principle explains the loss of adaptations?","Reversibility",["Progression","Variety","Individuality"],"Reversibility: “use it or lose it”. Adaptations are lost when training stops."],
+["Training principles","“Fitness gains slow as an athlete nears their genetic potential.” Which principle?","Diminishing returns",["Detraining","Progression","Overtraining"],"Gains get smaller closer to your genetic ceiling."],
+["Training principles","A 3 km runner runs 5 km once a week at 70% HR max and sees little improvement. Which principle is most likely incorrect?","Frequency",["Duration","Intensity","Specificity"],"Once a week is too infrequent to cause adaptations."],
+["Training principles","Which principle is gradually increasing the training load over time?","Progression",["Reversibility","Variety","Maintenance"],"Progression gradually overloads the body so it keeps adapting."],
+["Training principles","What does FITT stand for in training programs?","Frequency, Intensity, Time, Type",["Fitness, Intensity, Training, Time","Frequency, Individuality, Time, Technique","Fatigue, Intensity, Time, Type"],"Programs are critiqued using Frequency, Intensity, Time, Type (plus Progression)."],
+// Fitness components
+["Fitness components","Which component is “the ability to exert a force rapidly over a short period of time”?","Muscular power",["Muscular endurance","Flexibility","Aerobic power"],"E.g. sprint starts, long jump, javelin."],
+["Fitness components","Which component is how fast you move your body or body parts from one point to another?","Speed",["Agility","Muscular power","Anaerobic capacity"],"E.g. sprint events, accelerating away from an opponent."],
+["Fitness components","Which component is the capacity of a joint to move through its full range of motion?","Flexibility",["Muscular strength","Agility","Speed"],"E.g. gymnastics, ballet, rock climbing."],
+["Fitness components","Which component is the ability to change direction at speed while maintaining balance?","Agility",["Speed","Flexibility","Muscular power"],"E.g. sidestepping in AFL, dribbling past a defender in basketball."],
+["Fitness components","Which component is the ability of a muscle to produce the greatest possible force?","Muscular strength",["Muscular power","Muscular endurance","Speed"],"Strength = maximal force (e.g. 1RM). Power = force quickly."],
+["Fitness components","Which component is the ability of a muscle to sustain repeated contractions against resistance over time?","Muscular endurance",["Muscular strength","Aerobic power","Flexibility"],"E.g. cycling, rowing, kayaking, running."],
+["Fitness components","Anaerobic power vs capacity: what does capacity refer to?","How much energy (the total amount)",["How fast energy is produced","How long you can run","How flexible you are"],"Power = how fast, capacity = how much."],
+["Fitness components","Which energy system mainly supports muscular power and strength?","ATP-PC system",["Aerobic system","Glycolysis only","Lactic acid system only"],"Short, explosive efforts rely on the ATP-PC system."],
+["Fitness components","Which training method is HIIT with a 1:1 work:rest ratio mainly used for?","Aerobic power",["Flexibility","Muscular strength","Agility"],"Aerobic power methods: continuous, fartlek, long interval and 1:1 HIIT."],
+["Fitness components","Short interval training for speed uses efforts of what length and intensity?","3–10 s at 95%+ max effort",["60 s at 50% effort","5 min at 70% effort","30 s at 60% effort"],"Short, maximal efforts with long rests (about 1:5 work:rest)."],
+["Fitness components","Which stretching is used in the warm-up and which in the cool-down?","Dynamic in warm-up, static in cool-down",["Static in warm-up, dynamic in cool-down","Static in both","Dynamic in both"],"Dynamic stretching prepares the body; static stretching helps flexibility after."],
+// Fitness testing
+["Fitness testing","Which test measures aerobic capacity using a 12-minute effort?","Cooper’s 12-minute run",["Wingate test","Vertical jump","Sit and reach"],"Cones every 20 m; run as far as possible in 12 minutes."],
+["Fitness testing","Which test is used for lower-body muscular power?","Vertical jump",["Seated basketball throw","60 s push-up","1RM test"],"Seated basketball throw is the upper-body power test."],
+["Fitness testing","Which test is for muscular strength?","1 repetition maximum (1RM)",["30 s sit-up","Cooper’s run","20 m sprint"],"1RM = heaviest load lifted once."],
+["Fitness testing","Which is a test of anaerobic capacity?","30-second Wingate test",["Multi-stage fitness test","Sit and reach","Yo-Yo test"],"Phosphate Recovery and 30 s Wingate test anaerobic capacity."],
+["Fitness testing","Which tests are used for muscular endurance?","60 s push-up and 30 s sit-up",["Vertical jump and Wingate","Sit and reach and 1RM","20 m and 50 m sprint"],"Push-up = upper body, sit-up = core."],
+["Fitness testing","Which test measures flexibility?","Trunk flexion (sit and reach)",["Phosphate recovery","Vertical jump","Cooper’s run"],"Also shoulder and wrist elevation."],
+["Fitness testing","A VO₂ max test directly measures O₂ intake. It is a…","Direct test",["Indirect test","Field test only","Validity test"],"Direct tests measure the component itself. The beep test is indirect."],
+["Fitness testing","Why is the beep test an indirect test?","Results are compared to data to estimate VO₂ max",["It measures O₂ intake directly","It is done in a lab","It measures flexibility"],"It can’t measure O₂ intake, so VO₂ max is predicted from the score."],
+["Fitness testing","Which is true of lab tests compared with field tests?","More accurate but expensive and need specialist equipment",["Cheaper and test large groups","Less accurate","Only used in PE class"],"Field tests are cheaper and test big groups but are less accurate."],
+["Fitness testing","A test’s ability to measure what it is intended to measure is its…","Validity",["Reliability","Accuracy","Progression"],"E.g. the beep test measures aerobic capacity, not flexibility."],
+["Fitness testing","Producing consistent, repeatable results is called…","Reliability",["Validity","Variety","Specificity"],"Same time of day, warm-up, order, conditions and equipment."],
+["Fitness testing","Which improves test accuracy?","Calibrating equipment",["Testing at different times of day","Changing the order of tests","Using different footwear"],"Also: specialised technology and clear instructions."],
+["Fitness testing","Which is a purpose of fitness testing?","Establish baseline data and monitor training effectiveness",["Replace training","Increase muscle temperature","Prevent all injuries"],"Tests find strengths/weaknesses and inform program design."],
+["Fitness testing","Which factor decreases aerobic power by around 1% each year after age 25?","Age",["Gender","Capillary density","Flexibility"],"Aerobic power declines with age."],
+["Fitness testing","Which fibre type is advantageous for speed and anaerobic power?","Fast twitch",["Slow twitch","Smooth","Cardiac"],"Fast twitch contract quickly and with more force."],
+// Acute responses
+["Acute responses","What is an acute response?","An immediate, short-term response to exercise",["A long-term adaptation","A response after 12 weeks","A response only at rest"],"Acute = short term. Chronic = long term adaptation."],
+["Acute responses","How do you calculate maximal heart rate?","220 minus age",["200 minus age","220 plus age","180 minus age"],"A 20-year-old (e.g. Victor Wembanyama) has max HR = 200 bpm."],
+["Acute responses","What is stroke volume?","Blood pumped out of the left ventricle per beat",["Blood pumped out of the heart per minute","Beats per minute","Pressure in arteries"],"Plateaus at approx. 60% HR max."],
+["Acute responses","Which equation gives cardiac output?","Q = HR × SV",["Q = HR + SV","Q = SV ÷ HR","Q = RR × TV"],"Beyond submaximal levels, HR drives further increases in Q."],
+["Acute responses","Which equation gives ventilation?","V = RR × TV",["V = HR × SV","V = RR + TV","V = TV ÷ RR"],"Respiratory rate × tidal volume (L/min)."],
+["Acute responses","Systolic blood pressure is recorded…","During heart contraction, and is the higher value",["During relaxation, the lower value","At rest only","In the veins"],"Diastolic is during relaxation and is lower."],
+["Acute responses","What is tidal volume?","Volume of air moved in/out of the lungs per breath",["Breaths per minute","Air breathed per minute","Lung capacity"],"Measured in L/breath."],
+["Acute responses","Which are the muscle fuels used during exercise?","PC, glycogen and triglycerides",["Protein, water, salt","Oxygen only","Lactate only"],"Muscle energy stores decrease as intensity increases."],
+["Acute responses","Which is an acute muscular response to exercise?","Increased muscle temperature",["Larger heart","Increased capillary density","Increased mitochondria"],"Heat is a by-product of energy production."],
+// Oxygen uptake
+["Oxygen uptake","What is oxygen deficit?","O₂ demand exceeds O₂ supply at the start of exercise",["O₂ supply exceeds demand after exercise","A plateau in HR","Using no oxygen"],"There’s a lag in the body’s response when intensity increases."],
+["Oxygen uptake","What is steady state?","When O₂ supply meets O₂ demand",["O₂ demand exceeds supply","Recovery after exercise","Maximum heart rate"],"Usually reached in 2–5 minutes of aerobic exercise."],
+["Oxygen uptake","What does EPOC stand for?","Excess post-exercise oxygen consumption",["Extra pressure of oxygen capacity","Energy production of cells","Exercise power output capacity"],"O₂ supply exceeds demand during recovery. Greater after higher intensity and longer duration."],
+// Muscular system
+["Muscular system","Which muscle type is found only in the heart?","Cardiac",["Smooth","Skeletal","Striated"],"Cardiac is involuntary."],
+["Muscular system","Which muscle is voluntary, striped and attached to bones by tendons?","Skeletal",["Smooth","Cardiac","Connective"],"Skeletal muscle creates movement and fatigues easily."],
+["Muscular system","Where is smooth muscle found?","Blood vessels and digestive tract",["Attached to the skeleton","Only in the heart","Only in the limbs"],"It is involuntary and contracts slowly."],
+["Muscular system","In a muscle pair, the muscle that shortens is the…","Agonist",["Antagonist","Tendon","Ligament"],"The antagonist lengthens (reciprocal inhibition)."],
+["Muscular system","Which contraction shortens the muscle (e.g. bicep curl up)?","Concentric",["Eccentric","Isometric","Isokinetic"],"Eccentric = muscle lengthens (curl down)."],
+["Muscular system","Gripping a racquet or a wall squat is which contraction?","Isometric",["Concentric","Eccentric","Isokinetic"],"Muscle length stays the same."],
+["Muscular system","Which fibre type is white, fast, high in force and fatigues quickly?","Fast twitch",["Slow twitch","Smooth","Cardiac"],"Slow twitch is red, low force and fatigue resistant."],
+["Muscular system","Which activity suits slow twitch fibres?","Marathon",["100 m sprint","Shot put","Weightlifting"],"Slow twitch suit endurance."],
+["Muscular system","Muscles move bones by…","Pulling, not pushing",["Pushing","Twisting","Relaxing only"],"Muscles can contract or be stretched, they can’t push."],
+["Muscular system","Flexion is…","Decreasing the angle between bones",["Increasing the angle between bones","Moving away from the midline","Moving palms up"],"Extension increases the angle."],
+["Muscular system","Abduction is…","Moving away from the midline of the body",["Bringing towards the midline","Rotating around an axis","Pointing toes down"],"Adduction is towards the midline."],
+["Muscular system","Supination is…","Moving palms to face up",["Moving palms to face down","Sole facing inwards","Raising the foot"],"Pronation is palms down."],
+["Muscular system","Dorsiflexion is…","Raising the toes/foot up",["Pointing toes down","Sole facing out","Moving palms up"],"Plantar flexion points toes down."],
+["Muscular system","Inversion of the ankle is…","Sole facing inwards",["Sole facing outwards","Toes up","Toes down"],"Eversion is sole facing out."],
+// Critiquing programs
+["Critiquing programs","Which five areas do you use to critique a training program?","Frequency, Intensity, Time, Type, Progression",["Variety, Speed, Power, Age, Gender","Aerobic, Anaerobic, Strength, Speed, Agility","Warm-up, Skills, Cool-down, Diet, Sleep"],"Always link to the data."],
+["Critiquing programs","A critique MUST include…","Positive, negative, way to improve and effectiveness",["Only positives","Only a final score","A new program"],"1 mark each, using specific data."],
+["Critiquing programs","When evaluating a program you should…","Make an overall judgement. Don’t sit on the fence",["Say it is partly everything","List only negatives","Avoid deciding"],"Say if it’s effective or not."],
+["Critiquing programs","A training session design must include…","Warm-up, conditioning phase and cool-down",["Only a conditioning phase","Static stretching first","No cool-down"],"Warm-up: low-intensity aerobic + dynamic stretching. Cool-down: low-intensity aerobic + static stretching."]
+];
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const topics=[...new Set(Q.map(q=>q[0]))];
+let sel=new Set(topics),deck=[],i=0,score=0,missed=[],locked=false,ranked=true,rate=0,testClaim=false,me={name:null,skip:false,claimable:false,note:""};
+const tok=(()=>{try{let t=localStorage.getItem("sp_token");if(!t){t=[...crypto.getRandomValues(new Uint8Array(24))].map(b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem("sp_token",t)}return t}catch(e){return null}})();
+const shuffle=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
+const show=id=>["home","play","end"].forEach(s=>$(s).classList.toggle("hide",s!==id));
+async function api(path,body){try{const r=await fetch("/api/"+path,{method:body?"POST":"GET",headers:{"content-type":"application/json","x-token":tok||""},body:body?JSON.stringify(body):undefined});return await r.json()}catch(e){return{error:"Can’t reach the server."}}}
+
+topics.forEach(t=>{const b=document.createElement("button");b.className="chip on";b.textContent=t;
+ b.onclick=()=>{sel.has(t)?sel.delete(t):sel.add(t);b.classList.toggle("on")};$("chips").append(b)});
+function flash(ok){const f=$("flash");f.className=ok?"green":"red";void f.offsetWidth;f.className+=" show"}
+function getN(){const m=Q.filter(q=>sel.has(q[0])).length;let n=parseInt($("count").value,10);if(!n||n<1)n=20;return Math.min(n,m||1)}
+function lockName(n){me.name=n;$("nick").value=n;$("nick").disabled=true;$("nickNote").textContent="🔒 Your name is locked to this device."}
+function begin(pool,r=true){ranked=r;deck=shuffle(pool);i=0;score=0;missed=[];show("play");render()}
+async function tryStart(){const pool=Q.filter(q=>sel.has(q[0]));if(!pool.length)return alert("Pick at least one topic");
+ const ne=$("nickErr");ne.textContent="";const n=getN();
+ if($("compete").checked){
+  if(n<10)return ne.textContent="Leaderboard quizzes need at least 10 questions. Type 10 or more (and pick enough topics), or untick the box to play anonymously.";
+  if(!me.name){const r=await api("join",{name:$("nick").value.trim()});if(r.error)return ne.textContent=r.error;lockName(r.name)}}
+ begin(shuffle(pool).slice(0,n))}
+$("start").onclick=tryStart;
+
+function render(){locked=false;const q=deck[i];
+ $("pos").textContent=`Question ${i+1} of ${deck.length}`;$("score").textContent=`Score: ${score}`;
+ $("prog").style.width=(i/deck.length*100)+"%";$("topic").textContent=q[0];$("q").textContent=q[1];
+ $("exp").classList.add("hide");$("next").classList.add("hide");$("skip").classList.toggle("hide",!me.skip);$("opts").innerHTML="";
+ shuffle([q[2],...q[3]]).forEach(o=>{const b=document.createElement("button");b.className="opt";b.textContent=o;
+  b.onclick=()=>answer(b,o===q[2]);$("opts").append(b)})}
+function answer(btn,ok){if(locked)return;locked=true;$("skip").classList.add("hide");const q=deck[i];
+ [...$("opts").children].forEach(b=>{b.disabled=true;if(b.textContent===q[2])b.classList.add("right")});
+ if(ok)score++;else{btn.classList.add("wrong");missed.push(q)}
+ flash(ok);$("score").textContent=`Score: ${score}`;
+ $("exp").innerHTML=(ok?"<b>Correct!</b> ":"<b>Not quite.</b> Answer: "+q[2]+". ")+q[4];
+ $("exp").classList.remove("hide");$("next").textContent=i+1<deck.length?"Next":"See results";$("next").classList.remove("hide")}
+$("next").onclick=()=>{i++;i<deck.length?render():finish()};
+$("skip").onclick=async()=>{if(locked||!me.skip)return;locked=true;const r=await api("useskip",{});if(r.error){locked=false;return alert(r.error)}
+ me.skip=false;$("skip").classList.add("hide");const q=deck[i];
+ [...$("opts").children].forEach(b=>{b.disabled=true;if(b.textContent===q[2])b.classList.add("right")});
+ score++;flash(true);$("score").textContent=`Score: ${score}`;
+ $("exp").innerHTML="<b>Free skip used!</b> Counted as correct. Answer: "+q[2]+". "+q[4];$("exp").classList.remove("hide");
+ $("next").textContent=i+1<deck.length?"Next":"See results";$("next").classList.remove("hide");refresh()};
+
+function finish(){show("end");const p=Math.round(score/deck.length*100);
+ $("final").textContent=`${score} / ${deck.length} (${p}%)`;
+ $("msg").textContent=p>=90?"Outstanding!":p>=70?"Solid work. Review the misses below.":"Keep practising. You’ll get there.";
+ $("miss").innerHTML=missed.map(q=>`<li><b>${q[1]}</b><br>${q[2]}</li>`).join("");
+ $("missWrap").classList.toggle("hide",!missed.length);$("redo").classList.toggle("hide",!missed.length);saveScore();resetFb()}
+$("again").onclick=async()=>{await tryStart();if($("play").classList.contains("hide"))show("home")};
+$("redo").onclick=()=>begin(missed,false);
+$("home2").onclick=()=>{show("home");refresh()};
+$("compete").onchange=e=>$("nick").classList.toggle("hide",!e.target.checked);
+
+async function saveScore(){const m=$("saveMsg");m.style.color="";
+ if(!ranked)return m.textContent="Mistakes rounds aren’t ranked.";
+ if(!$("compete").checked)return m.textContent="Played anonymously. No score saved.";
+ m.textContent="Saving…";const r=await api("score",{score,total:deck.length});
+ if(r.glitch){m.textContent=`${me.name||"Player"} You tried to glitch the system, please don't.`;m.style.color="var(--bad)";return}
+ m.textContent=r.error||r.msg;refresh()}
+
+const fbHidden=()=>{try{return localStorage.getItem("sp_fb_hide")==="1"}catch(e){return false}};
+function drawStars(){$("stars").innerHTML="";for(let k=1;k<=5;k++){const b=document.createElement("button");b.textContent=k<=rate?"★":"☆";b.className="star";b.setAttribute("aria-label",k+" stars");b.onclick=()=>{rate=k;drawStars()};$("stars").append(b)}}
+function resetFb(){rate=0;$("fbText").value="";$("fbMsg").textContent="";$("fbSend").disabled=false;$("fbHide").checked=false;$("fb").classList.toggle("hide",fbHidden());drawStars()}
+$("fbHide").onchange=e=>{if(e.target.checked){try{localStorage.setItem("sp_fb_hide","1")}catch(x){}$("fb").classList.add("hide")}};
+$("fbSend").onclick=async()=>{const t=$("fbText").value.trim(),m=$("fbMsg");$("fbSend").disabled=true;
+ const r=await api("feedback",{rating:rate,text:t,score,total:deck.length});
+ if(r.error){m.textContent=r.error;$("fbSend").disabled=false}else{m.textContent="Thanks for your feedback! 🙌";refresh()}};
+
+function renderClaim(){$("claim").classList.toggle("hide",!(me.claimable||testClaim))}
+if(location.hash==="#test")$("testBtn").classList.remove("hide");
+$("testBtn").onclick=()=>{testClaim=true;renderClaim();window.scrollTo({top:0,behavior:"smooth"})};
+$("claimBtn").onclick=async()=>{const n=$("skipNote");
+ if(!me.claimable){testClaim=false;renderClaim();n.textContent="🧪 That was a test. Nothing was saved.";return}
+ const r=await api("claim",{});if(r.error){n.textContent=r.error;return}await refresh()};
+
+async function refresh(){const d=await api("board");
+ if(d.error){$("lbHome").innerHTML=$("lbEnd").innerHTML='<p class="sub">Leaderboard unavailable right now.</p>';return}
+ const h=d.rows.length?'<ol>'+d.rows.map(r=>`<li><b>${esc(r.name)}</b><span>${r.score}/${r.total} · ${r.pct}%</span></li>`).join("")+'</ol>':'<p class="sub">No scores yet. Be the first!</p>';
+ $("lbHome").innerHTML=$("lbEnd").innerHTML=h;
+ me=d.me;$("skipNote").textContent=me.note;if(me.name)lockName(me.name);renderClaim();
+ const fb=d.feedback,rated=fb.filter(f=>f.rating),avg=rated.length?(rated.reduce((a,f)=>a+f.rating,0)/rated.length).toFixed(1):"–";
+ $("fbList").innerHTML=`<p class="sub" style="margin:4px 0 8px">${fb.length} responses · average ${avg}/5</p>`+(fb.length?'<ul class="miss">'+fb.map(f=>`<li>${"★".repeat(f.rating||0)}${f.text?" "+esc(f.text):""} (${f.score}/${f.total})</li>`).join("")+'</ul>':"");
+ $("fbAdmin").classList.remove("hide")}
+refresh();setInterval(refresh,10000);
+</script>
+</body>
+</html>
